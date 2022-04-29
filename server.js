@@ -7,7 +7,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-const host = 'localhost';
+const host = 'https://xadrez-online.herokuapp.com';
 const port = 3000;
 
 const gameRooms = [];
@@ -49,7 +49,7 @@ io.on('connection', socket => {
             console.log(`> Jogador [${socket.id}] desconectado`);
             
             closeRoom(roomId);
-            io.to(roomId).emit('playerDisconnected', `http://${host}:${port}`);
+            io.to(roomId).emit('playerDisconnected', `${host}`);
         }
     });
 
@@ -62,7 +62,7 @@ io.on('connection', socket => {
         });
 
         io.to(socketId).emit(
-            'roomCreated', `http://${host}:${port}/${roomId}`, roomId
+            'roomCreated', `${host}/${roomId}`, roomId
         );
     });
 
@@ -87,7 +87,7 @@ io.on('connection', socket => {
             /*Manda o comando de iniciar o jogo para 
             ambos os jogadores*/
             io.to(roomId).emit(
-                'startGame', room, `http://${host}:${port}`);
+                'startGame', room, `${host}`);
         } else {
             const room = createRoom();
             room.id = roomId;
