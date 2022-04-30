@@ -34,11 +34,7 @@
             const socket = io();
 
             const game = new Game();
-            const board = createBoard();
             const messageBox = initializeMessageBox();
-            
-            /* Cria a UI da mesa */
-            board.render();
 
             /* Configura um observer e inicia o jogo */
             function setup(thisPlayerColor, roomId) {
@@ -59,6 +55,11 @@
                     console.log(`> Emitting event -> ${command.type}`);
                     socket.emit(command.type, command);
                 });
+
+                const board = createBoard(thisPlayerColor);
+
+                /* Cria a UI da mesa */
+                board.render();
 
                 game.start(board, thisPlayerColor, roomId);
             }
