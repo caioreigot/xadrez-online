@@ -43,17 +43,25 @@ function closeRoom(roomId) {
 }
 
 io.on('connection', socket => {
+    const url = socket.handshake.headers.referer.split('/');
+    const roomId = url[3];
+    const inGameRoom = (roomId != undefined && roomId.length == 30)
+
+    if (inGameRoom)
+        console.log(`> Jogador [${socket.id}] conectado na sala [${roomId}]`);
+
     /* Ao receber o evento de desconexão de um client */
     socket.on('disconnect', () => {
         let url = socket.handshake.headers.referer.split('/');
         let roomId = url[3];
         
         /* Se o client estiver dentro de uma sala de jogo */
-        if (roomId != undefined && roomId.length == 30) {
-            console.log(`> Jogador [${socket.id}] desconectado`);
+        if (inGameRoom) {
+            console.log(`> Jogador [${socket.id}] desconectado da sala [${roomId}]`);
             
             closeRoom(roomId);
-            io.to(roomId).emit('playerDisconnected', `${host}`);
+            io.to(roomId).emit(
+                'playerDisconnected', host);
         }
     });
 
@@ -93,7 +101,7 @@ io.on('connection', socket => {
             /* Manda o comando de iniciar o jogo para 
             ambos os jogadores */
             io.to(roomId).emit(
-                'startGame', room, `${host}`);
+                'startGame', room, host);
         } else {
             const room = createRoom();
             room.id = roomId;
@@ -119,6 +127,14 @@ io.on('connection', socket => {
             .broadcast.to(roomId)
             .emit('pieceMoved', mirroredOldPosition, mirroredNewPosition);
     });
+
+    /* Ao receber o evento de que um peão foi transformado */
+    socket.on('pawnTransformed', command => {
+        /* Notificando a transformação para o outro jogador */
+        socket
+            .broadcast.to(command.roomId)
+            .emit('pawnTransformed', command);
+    });
     
     /* Ao receber o evento de jogo terminado */
     socket.on('gameEnded', command => {
@@ -127,5 +143,5 @@ io.on('connection', socket => {
 });
 
 server.listen(process.env.PORT || port, () => {
-    console.log(`Listening at ${host} on port ${port}`);
+    console.log(`Listening at ${host}`);
 });
