@@ -8,7 +8,7 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 const host = 'localhost';
-const port = 3000;
+const port = process.env.PORT||3000;
 
 /* Array que armazena objetos que representam uma 
 sala de jogo criada */
@@ -138,6 +138,19 @@ io.on('connection', socket => {
   socket.on('gameEnded', command => {
     closeRoom(command.roomId);
   });
+
+  /* sinalização para troca de fluxo de audio entre jogadores */
+  socket.on("offer", (offer, to)=>{
+    socket.to(to).emit("offer", offer)
+  });
+
+  socket.on("answer", (answer, to) =>{
+    socket.to(to).emit("answer", answer);
+  })
+
+  socket.on("ice", (ice, to) =>{
+    socket.to(to).emit("ice", ice);
+  })
 });
 
 server.listen(port, () => {
